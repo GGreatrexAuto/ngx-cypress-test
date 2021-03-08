@@ -18,7 +18,17 @@
       "dom"
     ],
     "plugins": [
-      { "name": "tslint-language-service"}
-    ]
-  }
+      {
+        "name": "tslint-language-service"
+      }
+    ],
+    "types": [
+      "cypress"
+    ],
+    "allowJs": true,
+    "baseUrl": "../node_modules",
+  },
+  "include": [
+    "**/*.*"
+  ]
 }
