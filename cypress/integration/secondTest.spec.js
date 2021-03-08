@@ -21,10 +21,10 @@ describe('our second test suite', () => {
             .find('nb-checkbox')
             .click()
 
-        cy.contains('nb-card','Horizontal form').find('[type="email"]')
+        cy.contains('nb-card', 'Horizontal form').find('[type="email"]')
     })
 
-    it.only('then and wrap methods', () => {
+    it('then and wrap methods', () => {
         cy.visit('/')
         cy.contains('Forms').click()
         cy.contains('Form Layouts').click()
@@ -40,7 +40,7 @@ describe('our second test suite', () => {
             // jquery here, cypress is not known, e.g find here is from jquery and not cypress
             const emailLabelFirst = firstForm.find('[for="inputEmail1"]').text()
             const passwordLabelFirst = firstForm.find('[for="inputPassword2"]').text()
-     
+
             expect(emailLabelFirst).to.equal('Email')
             expect(passwordLabelFirst).to.equal('Password')
 
@@ -55,5 +55,41 @@ describe('our second test suite', () => {
                 cy.wrap(secondForm).find('[for="exampleInputPassword1"]').should('contain', 'Password')
             })
         })
+    })
+    it('invoke command', () => {
+        cy.visit('/')
+        cy.contains('Forms').click()
+        cy.contains('Form Layouts').click()
+
+        cy.get('[for="exampleInputEmail1"]').invoke('text').then(text => {
+            expect(text).to.equal('Email address')
+        })
+
+        cy.contains('nb-card', 'Basic form')
+            .find('nb-checkbox')
+            .click()
+            .find('.custom-checkbox')
+            .invoke('attr', 'class')
+            //.should('contain', 'checked')
+            .then(classValue => {
+                expect(classValue).to.contain('checked')
+            })
+
+    })
+
+    it.only('assert property on date picker', () => {
+        cy.visit('/')
+        cy.contains('Forms').click()
+        cy.contains('Datepicker').click()
+
+        cy.contains('nb-card', 'Common Datepicker')
+            .find('input').then(input => {
+                cy.wrap(input).click()
+                cy.get('nb-calendar-day-picker')
+                    .contains('17')
+                    .click()
+                
+                    cy.wrap(input).invoke('prop', 'value').should('contain', 'Mar 17, 2021')
+            })
     })
 })
