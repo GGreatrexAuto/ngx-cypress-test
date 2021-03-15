@@ -134,7 +134,7 @@ describe('our second test suite', () => {
         cy.get('[type="checkbox"]').eq(1).check({ force: true });
     })
 
-    it.only('lists and drop down elements', () => {
+    it('lists and drop down elements', () => {
         cy.visit('/')
         //select the list
         cy.get('nav nb-select').click()
@@ -147,11 +147,11 @@ describe('our second test suite', () => {
         //loop through and assert all options
         cy.get('nav nb-select').then(dropdown => {
             cy.wrap(dropdown).click()
-            
+
             //get all options from list using for each loop
             cy.get('.options-list nb-option').each((listItem, index) => {
                 const itemText = listItem.text().trim()
-                
+
                 // create list of colors for assertion later
                 const colors = {
                     "Light": "rgb(255, 255, 255)",
@@ -165,7 +165,7 @@ describe('our second test suite', () => {
                 cy.wrap(dropdown).should('contain', itemText)
                 // assert page changes color, using the key of the item name in the color list we created
                 cy.get('nb-layout-header nav').should('have.css', 'background-color', colors[itemText])
-                
+
                 //set an index earlier so we can skip the final drop down click at the end of the test as it is not required.
                 if (index < 3) {
                     cy.wrap(dropdown).click()
@@ -174,4 +174,83 @@ describe('our second test suite', () => {
         })
 
     })
+
+    it('Web tables', () => {
+        cy.visit('/')
+        cy.contains('Tables & Data').click()
+        cy.contains('Smart Table').click()
+
+        // 1 edit a table item
+        cy.get('tbody').contains('tr', 'Larry').then(tableRow => {
+            cy.wrap(tableRow).find('.nb-edit').click()
+            cy.wrap(tableRow).find('[placeholder="Age"]').clear().type('25')
+            cy.wrap(tableRow).find('.nb-checkmark').click()
+
+            cy.wrap(tableRow).find('td').eq(6).should('contain', '25')
+        })
+
+        //2 add a row to table
+        cy.get('thead').find('.nb-plus').click()
+        cy.get('thead').find('tr').eq(2).then(tableRow => {
+            cy.wrap(tableRow).find('[placeholder="First Name"]').type('Artem')
+            cy.wrap(tableRow).find('[placeholder="Last Name"]').type('Jones')
+            cy.wrap(tableRow).find('.nb-checkmark').click()
+        })
+        cy.get('tbody tr').first().find('td').then(tableColumns => {
+            cy.wrap(tableColumns).eq(2).should('contain', 'Artem')
+            cy.wrap(tableColumns).eq(3).should('contain', 'Jones')
+        })
+
+        //3 filter the age column, iterate through an array of ages and check all results returned are relevant to the filter.
+        const age = [20, 30, 40, 200]
+
+        cy.wrap(age).each(age => {
+            cy.get('thead [placeholder="Age"').clear().type(age)
+            cy.wait(500)
+            cy.get('tbody tr').each(tableRow => {
+                if (age == 200) {
+                    cy.wrap(tableRow).should('contain', 'No data found')
+                } else {
+                    cy.wrap(tableRow).find('td').eq(6).should('contain', age)
+                }
+            })
+        })
+
+
+    })
+
+    function selectDayFromCurrent(day) {
+        let date = new Date()
+        date.setDate(date.getDate() + day)
+        let futureDay = date.getDate()
+        let futureMonth = date.toLocaleString('default', { month: "short" })
+        let dateAssert = futureMonth + ' ' + futureDay + ', ' + date.getFullYear()
+        cy.get('nb-calendar-navigation').invoke('attr', 'ng-reflect-date').then(dateAttribute => {
+            if (!dateAttribute.includes(futureMonth)) {
+                cy.get('[data-name="chevron-right"]').click()
+                selectDayFromCurrent(day)
+            } else {
+                cy.get('nb-calendar-day-picker [class="day-cell ng-star-inserted"]')
+                    .contains(futureDay)
+                    .click()
+            }
+        })
+        return dateAssert;
+    }
+
+    it.only('Date picker not hardcoded', () => {
+
+        cy.visit('/')
+        cy.contains('Forms').click()
+        cy.contains('Datepicker').click()
+
+
+
+        cy.contains('nb-card', 'Common Datepicker').find('input').then(input => {
+            cy.wrap(input).click()
+            const dateAssert = selectDayFromCurrent(2)
+            cy.wrap(input).invoke('prop', 'value').should('contain', dateAssert)
+        })
+    })
+
 })
